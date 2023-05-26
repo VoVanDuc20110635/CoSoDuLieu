@@ -1,0 +1,251 @@
+﻿-- Người thực hiện: Nhóm 3
+-- Em cam đoạn tất cả các câu dưới đây đều do em viết code và đều đã chạy ra kết quả
+
+-- Câu 1
+--cau 1: Hãy cho biết tên các dự án mà nhân viên có mã ‘NV01’ tham gia
+select DUAN.TenDA
+from PhanCong, DUAN
+where PhanCong.MaDA = DUAN.MaDA and PhanCong.MaNV = 'nv01'
+
+-- cau 2: Tính tổng thời gian tham gia các dự án của mỗi nhân viên
+select PhanCong.MaNV,count(PhanCong.ThoiGian)as N'Tổng thời gian'
+from PhanCong
+group by PhanCong.MaNV
+
+--cau 3: Cho biết họ tên các nhân viên chưa tham gia dự án nào
+select NhanVien.HoNV, NhanVien.Tenlot, NhanVien.tenNV
+from NhanVien left outer join PhanCong on NhanVien.Manv = PhanCong.MaNV 
+where MaDA is null
+
+-- cau 3a: Tìm ngày sinh và địa chỉ của nhân viên “Nguyễn Bảo Hùng”
+select NhanVien.NgSinh, NhanVien.Dchi
+from NhanVien
+where NhanVien.HoNV = 'Nguyen' and NhanVien.Tenlot = 'Bao' and NhanVien.tenNV = 'Hung'
+
+--cau 3b: Tìm tên và địa chỉ của các nhân viên làm việc cho phòng “Nghiên cứu”
+select NhanVien.HoNV, NhanVien.Tenlot,NhanVien.tenNV, NhanVien.Dchi
+from NhanVien left outer join PhongBan on NhanVien.Phong = PhongBan.MaPB
+where PhongBan.TenPB = 'Nghien cuu'
+
+--cau 3c:  Với mỗi dự án được triển khai ở Gò Vấp, cho biết mã dự án, mã phòng quản lý và
+--họ tên, ngày sinh trưởng phòng của phòng đó 
+select Q.MaDA, Q.MaPB, NhanVien.HoNV, NhanVien.Tenlot, NhanVien.tenNV, NhanVien.NgSinh
+from  ( select * from DUAN left outer join PhongBan on DUAN.Phong = PhongBan.MaPB where DUAN.DiaDiem = 'Go Vap') as Q left outer join NhanVien on Q.TrPhong = NhanVien.Manv
+
+-- cau 3d: Với mỗi nhân viên, cho biết họ tên nhân viên và họ tên của người quản lý nhân
+--viên đó 
+select NhanVien.HoNV, NhanVien.Tenlot, NhanVien.tenNV, Q.HoNV as HoQL, q.Tenlot as TenlotQL, Q.tenNV TenQL
+from NhanVien left outer join NhanVien as Q on NhanVien.MaNQL = Q.Manv
+
+-- cau 3e: Cho biết mã nhân viên, họ và tên của các nhân viên của phòng “Nghiên cứu” có
+--mức lương từ 30000 đến 50000
+select NhanVien.Manv, NhanVien.HoNV, NhanVien.Tenlot, NhanVien.tenNV
+from PhongBan left outer join NhanVien on PhongBan.MaPB = NhanVien.Phong
+where PhongBan.TenPB = 'Nghien cuu' and NhanVien.Luong between 30000 and 50000
+
+-- cau 3f: Cho biết mã nhân viên, họ tên nhân viên và mã dự án, tên dự án của các dự án mà
+--họ tham gia 
+select R.Manv, R.HoNV ,R.Tenlot, R.tenNV, DUAN.MaDA, DUAN.TenDA
+from (select NhanVien.Manv, NhanVien.HoNV, NhanVien.Tenlot, NhanVien.tenNV, PhanCong.MaDA from NhanVien, PhanCong where NhanVien.Manv = PhanCong.MaNV ) as R inner join DUAN on DUAN.MaDA = R.MaDA
+
+-- cau 3g : Cho biết mã nhân viên, họ tên của những người không có người quản lý
+select NhanVien.Manv, NhanVien.HoNV, NhanVien.Tenlot, NhanVien.tenNV
+from NhanVien
+where NhanVien.MaNQL is null
+
+--cau 3h: Cho biết họ tên của các trưởng phòng có thân nhân 
+select  distinct Q.HoNV, Q.Tenlot, Q.tenNV
+from (select ThanNhan.MaNV, NhanVien.HoNV, NhanVien.Tenlot, NhanVien.tenNV from ThanNhan, NhanVien where ThanNhan.MaNV = NhanVien.Manv) as Q, PhongBan
+where Q.MaNV = PhongBan.TrPhong
+
+-- cau 3i: Tính tổng lương nhân viên, lương cao nhất, lương thấp nhất và mức lương trung
+--bình 
+select sum(NhanVien.Luong) as N'Tổng lương', max(NhanVien.Luong) as N'Lương cao nhất', min(NhanVien.Luong) as N'Lương thấp nhất', avg(NhanVien.Luong) as N'Lương trung bình'
+from NhanVien
+
+--cau 3j: Cho biết tổng số nhân viên và mức lương trung bình của phòng “Nghiên cứu”
+select count(NhanVien.Manv) as 'tong nhan vien', avg(NhanVien.Luong) as 'Muc luong trung binh'
+from PhongBan, NhanVien
+where PhongBan.MaPB = NhanVien.Phong and PhongBan.TenPB = 'Nghien cuu'
+
+--cau 3k: Với mỗi phòng, cho biết mã phòng, số lượng nhân viên và mức lương trung bình 
+select NhanVien.Phong, count(NhanVien.Manv) as 'So luong nhan vien', avg(NhanVien.Luong) as 'Muc luong trung binh'
+from NhanVien
+group by NhanVien.Phong
+
+--cau 3l: Với mỗi dự án, cho biết mã dự án, tên dự án và tổng số nhân viên tham gia 
+select Q.MaDA, Q.TenDA, count(Q.MaNV) as 'So nhan vien'
+from (select DUAN.MaDA, DUAN.TenDA, PhanCong.MaNV from DUAN inner join PhanCong on DUAN.MaDA = PhanCong.MaDA ) as Q
+group by Q.MaDA, Q.TenDA
+
+-- cau 3m: Với mỗi dự án có nhiều hơn 2 nhân viên tham gia, cho biết mã dự án, tên dự án và
+--số lượng nhân viên tham gia 
+select DUAN.MaDA, DUAN.TenDA, COUNT(PhanCong.MaNV)
+from DUAN, PhanCong
+where DUAN.MaDA=  PhanCong.MaDA
+group by DUAN.MaDA, DUAN.TenDA
+having count(PhanCong.MaNV ) > 2
+
+-- cau 3n: Với mỗi dự án, cho biết mã số dự án, tên dự án và số lượng nhân viên phòng số 5
+--tham gia
+select DUAN.MaDA, DUAN.TenDA, count(Q.Manv) as 'So luong nhan vien'
+from (select NhanVien.Phong, NhanVien.Manv, PhanCong.MaDA from NhanVien inner join PhanCong on NhanVien.Manv = PhanCong.MaNV where NhanVien.Phong = 5) as Q inner join DUAN on Q.MaDA = DUAN.MaDA
+group by DUAN.MaDA, DUAN.TenDA
+
+-- cau 3o: Với mỗi phòng có nhiều hơn 2 nhân viên, cho biết mã phòng và số lượng nhân
+--viên có lương lớn hơn 25000
+select NhanVien.Phong, count(NhanVien.Manv)
+from NhanVien
+where NhanVien.Luong > 25000
+group by NhanVien.Phong
+
+--cau 3p: Với mỗi phòng có mức lương trung bình lớn hơn 30000, cho biết mã phòng, tên
+--phòng, số lượng nhân viên của phòng đó 
+select NhanVien.Phong, PhongBan.TenPB ,count(NhanVien.Manv) as 'So luong nhan vien'
+from NhanVien, PhongBan
+where NhanVien.Phong = PhongBan.MaPB
+group by NhanVien.Phong, PhongBan.TenPB
+having avg(NhanVien.Luong) > 30000
+
+--cau 3q:Với mỗi phòng có mức lương trung bình lớn hơn 30000, cho biết mã phòng, tên
+--phòng, số lượng nhân viên nam của phòng đó         ===========> khogn biet lam/???? 
+select NhanVien.Phong, PhongBan.TenPB ,count(NhanVien.Phai) as 'So luong nhan vien nam'
+from NhanVien, PhongBan
+where NhanVien.Phong = PhongBan.MaPB
+group by NhanVien.Phong, PhongBan.TenPB
+having avg(NhanVien.Luong) > 30000
+
+-- Câu 2
+-- cau 2a: Cho biết Địa chỉ và số điện thoại của Nhà xuất bản “Addison Wesley”
+select NXB.DiaChi, NXB.SoDT
+from NXB
+where NXB.TenNXB = 'Addison Wesley'
+
+-- cau 2b Cho biết mã sách và Tựa sách của những cuốn sách được xuất bản bởi nhà xuất
+--bản “Addison Wesley”
+select DauSach.MaSach, DauSach.Tua
+from NXB, DauSach
+where nxb.MaNXB = DauSach.MaNXB and NXB.TenNXB = 'Addison Wesley'
+
+--cau2c: Cho biết mã sách và Tựa sách của những cuốn sách có tác giả là “Hemingway”
+select DauSach.MaSach, DauSach.Tua
+from DauSach, TacGia
+where DauSach.MaSach = TacGia.MaSach and TacGia.TenTacGia = 'Hemingway'
+
+--cau2d: Với mỗi đầu sách, cho biết tựa và số lượng cuốn sách mà thư viện đang sở hữu 
+select DauSach.Tua, count(CuonSach.MaSach)
+from CuonSach, DauSach
+where CuonSach.MaSach = DauSach.MaSach
+group by CuonSach.MaSach, DauSach.Tua
+
+--cau 2e: Với mỗi độc giả, hãy cho biết Tên, địa chỉ và số lượng cuốn sách mà người đó đã mượn
+select DocGia.TenDG, DocGia.DiaChi, count(Muon.MaDG)
+from DocGia, Muon
+where  Muon.MaDG = DocGia.MaDG
+group by Muon.MaDG, DocGia.TenDG, DocGia.DiaChi
+
+--cau 2f: Cho biết mã cuốn, tựa sách và vị trí của những cuốn sách được xuất bản bởi nhà xuất bản “Addison Wesley”
+select CuonSach.MaCuon, Q.Tua, CuonSach.ViTri
+from (select DauSach.MaSach, DauSach.Tua from DauSach, NXB where DauSach.MaNXB = NXB.MaNXB and NXB.TenNXB = 'Addison Wesley') as Q , CuonSach
+where Q.MaSach = CuonSach.MaSach
+
+--cau 2g: Với mỗi đầu sách, hãy cho biết Tên nhà xuất bản và số lượng tác giả
+select Q.MaSach, q.Tua, Q.TenNXB, COUNT(TacGia.TenTacGia)
+from (select DauSach.MaSach, DauSach.Tua, NXB.TenNXB from DauSach, NXB where DauSach.MaNXB = NXB.MaNXB) as Q, TacGia where Q.MaSach = TacGia.MaSach
+group by Q.MaSach, Q.Tua, Q.TenNXB
+
+--cau 2h :Hãy cho biết Tên, địa chỉ, số điện thoại của những độc giả đã mượn từ 5 cuốn sách trở lên
+select DocGia.TenDG, DocGia.DiaChi, DocGia.SoDT
+from Muon, DocGia
+where Muon.MaDG = DocGia.MaDG 
+group by Muon.MaDG, DocGia.TenDG, DocGia.DiaChi, DocGia.SoDT
+having COUNT(Muon.MaDG) >= 5
+
+--cau 2i: Cho biết mã NXB, tên NXB và số lượng đầu sách của NXB đó trong CSDL
+select NXB.MaNXB, NXB.TenNXB, count(DauSach.MaNXB) as 'So luong sach'
+from NXB, DauSach
+where NXB.MaNXB = DauSach.MaNXB
+group by NXB.TenNXB, NXB.MaNXB
+
+-- cau 2j: Cho biết mã NXB, tên NXB và địa chỉ của những NXB có từ 100 đầu sách trở lên
+select NXB.MaNXB, NXB.TenNXB, NXB.DiaChi
+from NXB, DauSach
+where NXB.MaNXB = DauSach.MaNXB
+group by NXB.MaNXB, NXB.TenNXB, NXB.DiaChi
+having count(DauSach.MaNXB) >= 2
+
+-- cau 2k: Cho biết mã NXB, tên NXB, và số lượng tác giả đã hợp tác với NXB đó
+select Q.MaNXB, NXB.TenNXB, count(Q.TenTacGia)
+from (select TacGia.MaSach, TacGia.TenTacGia, DauSach.MaNXB from TacGia, DauSach where TacGia.MaSach = DauSach.MaSach) as Q, NXB
+where Q.MaNXB = NXB.MaNXB
+group by Q.MaNXB, NXB.TenNXB
+
+-- 2l: Tựa và số lượng tác giả của những cuốn sách có tác giả là “Hemingway” mà độc giả “Nguyễn Văn A” đã từng mượn 
+select T.tua, count(TacGia.TenTacGia) as 'So luong tac gia'
+from (select DauSach.MaSach, DauSach.Tua from (select distinct CuonSach.MaSach from (select Muon.MaCuon from Muon, DocGia where muon.MaDG = DocGia.MaDG and DocGia.TenDG = 'Nguyen Van A') as Q, CuonSach 
+				where Q.MaCuon = CuonSach.MaCuon) as K, DauSach where K.MaSach = DauSach.MaSach) as T, TacGia
+where TacGia.MaSach = T.MaSach
+group by TacGia.MaSach, T.Tua
+
+-- Câu 3
+--cau 3a:  Tìm tên những nhân viên ở cơ quan có mã số là 50
+select nv.TEN
+from NV
+where nv.MSCOQUAN = '50'
+
+--cau 3b: Tìm mã số tất cả các cơ quan từ quan hệ NV
+select nv.MSCOQUAN
+from NV
+group by nv.MSCOQUAN
+
+-- cau 3c:  Tìm tên các nhân viên ở cơ quan có mã số là 15,20,25
+select Q.TEN
+from ( select * from NV where NV.MSCOQUAN = '15' or NV.MSCOQUAN = '20' or NV.MSCOQUAN = '25') as Q
+group by Q.MSCOQUAN, Q.TEN
+
+--cau 3d: Tìm tên những người làm việc ở Đồ Sơn
+select nv.TEN
+from NV, COQUAN
+where nv.MSCOQUAN = COQUAN.MSCOQUAN and COQUAN.DIACHI = 'Do Son'
+
+-- Câu 4
+--cau 1: Cho biết danh sách các người thợ hiện không tham gia vào một hợp đồng sửa chữa nào
+select THO.TenTho, THO.MaTho
+from THO left outer join CHITIET_HD on THO.MaTho = CHITIET_HD.MaTho
+where CHITIET_HD.SoHD is null
+
+--cau 2: Cho biết danh sách những hợp đồng đã thanh lý nhưng chưa được thanh toán tiền đầy đủ.
+select HOPDONG.SoHD, HOPDONG.NgayDH, HOPDONG.TriGiaHD
+from HOPDONG, PHIEUTHU
+where HOPDONG.SoHD = PHIEUTHU.SoHD and	HOPDONG.TriGiaHD > PHIEUTHU.SoTienThu
+
+--cau 3: Cho biết danh sách những hợp đồng cần phải hoàn tất trước ngày 31/12/2002
+select HOPDONG.SoHD, HOPDONG.NgayDH, HOPDONG.MaKH
+from HOPDONG
+where year(HOPDONG.NgayGiaoDK)  < 2002 or (YEAR(HOPDONG.NgayGiaoDK) <= 2002 and MONTH(HOPDONG.NgayGiaoDK) < 12) or (YEAR(HOPDONG.NgayGiaoDK) <= 2002 and MONTH(HOPDONG.NgayGiaoDK) <= 12 and DAY(HOPDONG.NgayGiaoDK) < 31)	
+
+-- Câu 5
+--cau 1: Danh sách các giáo viên dạy các môn học có số tiết từ 45 trở lên
+select GV.TENGV
+from GV,MHOC
+where GV.MAMH = MHOC.MAMH and MHOC.SOTIET >= 45
+
+--cau 2: Danh sách giáo viên được phân công gác thi trong học kỳ 1
+select gv.MAGV, gv.TENGV
+from PC_COI_THI, GV
+where PC_COI_THI.MAGV = GV.MAGV and PC_COI_THI.HK = '1'
+
+--cau 3:  Danh sách giáo viên không được phân công gác thi trong học kỳ 1
+select gv.MAGV, gv.TENGV
+from PC_COI_THI, GV
+where PC_COI_THI.MAGV = GV.MAGV and PC_COI_THI.HK != '1'
+
+--cau 4: Cho biết lịch thi môn văn (TENMH = ‘VĂN HỌC’)
+select BUOITHI.HKY, BUOITHI.NGAY, BUOITHI.GIO, BUOITHI.PHG, BUOITHI.TGTHI
+from BUOITHI, MHOC
+where BUOITHI.MAMH = MHOC.MAMH and MHOC.TENMH  = 'Van Hoc'
+
+--cau 5: Cho biết các buổi gác thi của các giáo viên chủ nhiệm môn văn (TENMH = ‘VĂN HỌC’)
+select Q.TENGV, Q.MAGV, Q.HK, Q.NGAY, Q.GIO, Q.PHONG
+from (select GV.TENGV ,GV.MAMH, GV.MAGV, PC_COI_THI.HK, PC_COI_THI.NGAY, PC_COI_THI.GIO, PC_COI_THI.PHONG from GV, PC_COI_THI where GV.MAGV  = PC_COI_THI.MAGV) as Q, MHOC
+where Q.MAMH = MHOC.MAMH and MHOC.TENMH = 'Ngu Van'
